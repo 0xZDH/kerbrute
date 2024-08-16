@@ -12,6 +12,8 @@ builds:
       - -X github.com/0xZDH/kerbrute/util.GitCommit={{ .ShortCommit }}
     binary: kerbrute
     main: ./main.go
+    env:
+      - CGO_ENABLED=0
     goos:
       - darwin
       - windows
