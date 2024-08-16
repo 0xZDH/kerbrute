@@ -1,9 +1,12 @@
 # Kerbrute
-[![CircleCI](https://circleci.com/gh/ropnop/kerbrute.svg?style=svg)](https://circleci.com/gh/ropnop/kerbrute)
+
+> This is a modified version of [ropnop's kerbrute](https://github.com/ropnop/kerberos). The primary reason for this modified version is to support SOCKS proxy handling as well as several updates/quality of life changes.
+
+---
 
 A tool to quickly bruteforce and enumerate valid Active Directory accounts through Kerberos Pre-Authentication
 
-Grab the latest binaries from the [releases page](https://github.com/ropnop/kerbrute/releases/latest) to get started.
+Grab the latest binaries from the [releases page](https://github.com/0xZDH/kerbrute/releases/latest) to get started.
 
 ## Background
 This tool grew out of some [bash scripts](https://github.com/ropnop/kerberos_windows_scripts) I wrote a few years ago to perform bruteforcing using the Heimdal Kerberos client from Linux. I wanted something that didn't require privileges to install a Kerberos client, and when I found the amazing pure Go implementation of Kerberos [gokrb5](https://github.com/jcmturner/gokrb5), I decided to finally learn Go and write this. 
@@ -40,7 +43,7 @@ $ ./kerbrute -h
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (bc1d606) - 11/15/20 - Ronnie Flathers @ropnop
+Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
 
 This tool is designed to assist in quickly bruteforcing valid Active Directory accounts through Kerberos Pre-Authentication.
 It is designed to be used on an internal Windows domain with access to one of the Domain Controllers.
@@ -66,6 +69,7 @@ Flags:
   -h, --help               help for kerbrute
   -o, --output string      File to write logs to. Optional.
       --safe               Safe mode. Will abort if any user comes back as locked out. Default: FALSE
+      --socks string       SOCKS5 proxy address and port for upstream proxying (e.g. 127.0.0.1:1080)
   -t, --threads int        Threads to use (default 10)
   -v, --verbose            Log failures and errors
 
@@ -84,7 +88,7 @@ root@kali:~# ./kerbrute_linux_amd64 userenum -d lab.ropnop.com usernames.txt
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (43f9ca1) - 03/06/19 - Ronnie Flathers @ropnop
+Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
 
 2019/03/06 21:28:04 >  Using KDC(s):
 2019/03/06 21:28:04 >   pdc01.lab.ropnop.com:88
@@ -106,7 +110,7 @@ root@kali:~# ./kerbrute_linux_amd64 passwordspray -d lab.ropnop.com domain_users
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (43f9ca1) - 03/06/19 - Ronnie Flathers @ropnop
+Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
 
 2019/03/06 21:37:29 >  Using KDC(s):
 2019/03/06 21:37:29 >   pdc01.lab.ropnop.com:88
@@ -128,7 +132,7 @@ root@kali:~# ./kerbrute_linux_amd64 bruteuser -d lab.ropnop.com passwords.lst th
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (43f9ca1) - 03/06/19 - Ronnie Flathers @ropnop
+Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
 
 2019/03/06 21:38:24 >  Using KDC(s):
 2019/03/06 21:38:24 >   pdc01.lab.ropnop.com:88
@@ -158,10 +162,10 @@ Version: dev (n/a) - 05/11/19 - Ronnie Flathers @ropnop
 ```
 
 ## Installing
-You can download pre-compiled binaries for Linux, Windows and Mac from the [releases page](https://github.com/ropnop/kerbrute/releases/tag/latest). If you want to live on the edge, you can also install with Go:
+You can download pre-compiled binaries for Linux, Windows and Mac from the [releases page](https://github.com/0xZDH/kerbrute/releases/tag/latest). If you want to live on the edge, you can also install with Go:
 
 ```
-$ go get github.com/ropnop/kerbrute
+$ go get github.com/0xZDH/kerbrute
 ```
 
 With the repository cloned, you can also use the Make file to compile for common architectures:

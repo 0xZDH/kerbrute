@@ -1,0 +1,28 @@
+name: Binary Release
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out code"
+        uses: actions/checkout@v3
+        with: 
+          fetch-depth: 0
+      - name: "Set up Go"
+        uses: actions/setup-go@v4
+        with: 
+          go-version: stable
+          cache: true
+      - name: Install Dependences
+        run: sudo apt install gcc-aarch64-linux-gnu
+      - name: "Create release on GitHub"
+        uses: goreleaser/goreleaser-action@v4
+        with: 
+          args: "release -f .goreleaser/release.yml --clean"
+          version: latest
+          workdir: .
+        env: 
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

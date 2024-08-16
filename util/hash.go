@@ -3,7 +3,7 @@ package util
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/ropnop/gokrb5/v8/messages"
+	"github.com/0xZDH/gokrb5/v8/messages"
 )
 
 func ASRepToHashcat(asrep messages.ASRep) (string, error) {

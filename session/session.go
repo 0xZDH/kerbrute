@@ -2,16 +2,16 @@ package session
 
 import (
 	"fmt"
-	"github.com/ropnop/kerbrute/util"
+	"github.com/0xZDH/kerbrute/util"
 	"html/template"
 	"os"
 	"strings"
 
-	"github.com/ropnop/gokrb5/v8/iana/errorcode"
+	"github.com/0xZDH/gokrb5/v8/iana/errorcode"
 
-	kclient "github.com/ropnop/gokrb5/v8/client"
-	kconfig "github.com/ropnop/gokrb5/v8/config"
-	"github.com/ropnop/gokrb5/v8/messages"
+	kclient "github.com/0xZDH/gokrb5/v8/client"
+	kconfig "github.com/0xZDH/gokrb5/v8/config"
+	"github.com/0xZDH/gokrb5/v8/messages"
 )
 
 const krb5ConfigTemplateDNS = `[libdefaults]
@@ -36,8 +36,9 @@ type KerbruteSession struct {
 	Config       *kconfig.Config
 	Verbose      bool
 	SafeMode     bool
-	HashFile *os.File
-	Logger *util.Logger
+	SocksAddr    string
+	HashFile     *os.File
+	Logger       *util.Logger
 }
 
 type KerbruteSessionOptions struct {
@@ -46,6 +47,7 @@ type KerbruteSessionOptions struct {
 	Verbose bool
 	SafeMode bool
 	Downgrade bool
+	SocksAddr string
 	HashFilename string
 	logger *util.Logger
 }
@@ -92,7 +94,8 @@ func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err 
 		Config:       Config,
 		Verbose:      options.Verbose,
 		SafeMode:     options.SafeMode,
-		HashFile: hashFile,
+		SocksAddr:    options.SocksAddr,
+		HashFile:     hashFile,
 		Logger:       options.logger,
 	}
 	return k, err
@@ -119,7 +122,7 @@ func buildKrb5Template(realm, domainController string) string {
 }
 
 func (k KerbruteSession) TestLogin(username, password string) (bool, error) {
-	Client := kclient.NewWithPassword(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true))
+	Client := kclient.NewWithPassword(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr))
 	defer Client.Destroy()
 	if ok, err := Client.IsConfigured(); !ok {
 		return false, err
@@ -135,7 +138,7 @@ func (k KerbruteSession) TestLogin(username, password string) (bool, error) {
 func (k KerbruteSession) TestUsername(username string) (bool, error) {
 	// client here does NOT assume preauthentication (as opposed to the one in TestLogin)
 
-	cl := kclient.NewWithPassword(username, k.Realm, "foobar", k.Config, kclient.DisablePAFXFAST(true))
+	cl := kclient.NewWithPassword(username, k.Realm, "foobar", k.Config, kclient.DisablePAFXFAST(true), kclient.SocksAddr(k.SocksAddr))
 
 	req, err := messages.NewASReqForTGT(cl.Credentials.Domain(), cl.Config, cl.Credentials.CName())
 	if err != nil {

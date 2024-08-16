@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/ropnop/kerbrute/session"
-	"github.com/ropnop/kerbrute/util"
+	"github.com/0xZDH/kerbrute/session"
+	"github.com/0xZDH/kerbrute/util"
 	"github.com/spf13/cobra"
 )
 
@@ -22,6 +22,8 @@ var (
 
 	downgrade bool
 	hashFileName string
+
+	socksAddr string
 
 	logger           util.Logger
 	kSession         session.KerbruteSession
@@ -40,7 +42,8 @@ func setupSession(cmd *cobra.Command, args []string) {
 		Verbose:          verbose,
 		SafeMode:         safe,
 		HashFilename:     hashFileName,
-		Downgrade: downgrade,
+		Downgrade:        downgrade,
+		SocksAddr:        socksAddr,
 	}
 	k, err := session.NewKerbruteSession(kOptions)
 	if err != nil {

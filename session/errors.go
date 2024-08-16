@@ -41,6 +41,9 @@ func (k KerbruteSession) HandleKerbError(err error) (bool, string) {
 	if strings.Contains(eString, "KRB_AP_ERR_SKEW Clock skew too great") {
 		return true, "Clock skew too great"
 	}
+	if strings.Contains(eString, " KDC_Error: AS Exchange Error") {
+		return true, "2FA Enabled"
+	}
 
 	return false, eString
 }

@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ropnop/kerbrute/util"
+	"github.com/0xZDH/kerbrute/util"
 	"github.com/spf13/cobra"
 )
 

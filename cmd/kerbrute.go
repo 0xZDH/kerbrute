@@ -32,6 +32,7 @@ func init() {
 	rootCmd.PersistentFlags().IntVarP(&delay, "delay", "", 0, "Delay in millisecond between each attempt. Will always use single thread if set")
 	rootCmd.PersistentFlags().BoolVar(&downgrade, "downgrade", false, "Force downgraded encryption type (arcfour-hmac-md5)")
 	rootCmd.PersistentFlags().StringVar(&hashFileName, "hash-file", "", "File to save AS-REP hashes to (if any captured), otherwise just logged")
+	rootCmd.PersistentFlags().StringVar(&socksAddr, "socks", "", "SOCKS5 proxy address and port for upstream proxying (e.g. 127.0.0.1:1080)")
 	if delay != 0 {
 		threads = 1
 	}
