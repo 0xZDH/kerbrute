@@ -72,6 +72,8 @@ func makeBruteComboWorker(ctx context.Context, combos <-chan [2]string, wg *sync
 }
 
 func testLogin(ctx context.Context, username string, password string) {
+	kSession.ProgressBar.Add(1)
+
 	atomic.AddInt32(&counter, 1)
 	login := fmt.Sprintf("%v@%v:%v", username, domain, password)
 	if ok, err := kSession.TestLogin(username, password); ok {
@@ -97,6 +99,8 @@ func testLogin(ctx context.Context, username string, password string) {
 }
 
 func testUsername(ctx context.Context, username string) {
+	kSession.ProgressBar.Add(1)
+
 	atomic.AddInt32(&counter, 1)	
 	valid, salt, err := kSession.TestUsername(username)
 

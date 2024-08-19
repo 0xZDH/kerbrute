@@ -13,6 +13,8 @@ import (
 	kclient "github.com/0xZDH/gokrb5/v8/client"
 	kconfig "github.com/0xZDH/gokrb5/v8/config"
 	"github.com/0xZDH/gokrb5/v8/messages"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 const krb5ConfigTemplateDNS = `[libdefaults]
@@ -39,8 +41,10 @@ type KerbruteSession struct {
 	SafeMode       bool
 	NTHash         bool
 	SocksAddr      string
+	EncryptionType string
 	HashFile       *os.File
 	Logger         *util.Logger
+	ProgressBar    *progressbar.ProgressBar
 }
 
 type KerbruteSessionOptions struct {
@@ -51,6 +55,8 @@ type KerbruteSessionOptions struct {
 	Downgrade        bool
 	NTHash           bool
 	SocksAddr        string
+	EncryptionType   string
+	Linux            bool
 	HashFilename     string
 	logger           *util.Logger
 }
@@ -58,6 +64,11 @@ type KerbruteSessionOptions struct {
 func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err error) {
 	if options.Domain == "" {
 		return k, fmt.Errorf("domain must not be empty")
+	}
+	if options.EncryptionType != "" {
+		if _, ok := etypeID.ETypesByName[options.EncryptionType]; !ok {
+			return k, fmt.Errorf("invalid encryption type: %v", options.EncryptionType)
+		}
 	}
 	if options.logger == nil {
 		logger := util.NewLogger(options.Verbose, "")
@@ -75,7 +86,13 @@ func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err 
 		}
 	}
 
-	realm := strings.ToUpper(options.Domain)
+	var realm string
+	if options.Linux {
+		realm = options.Domain
+	} else {
+		realm = strings.ToUpper(options.Domain)
+	}
+
 	configstring := buildKrb5Template(realm, options.DomainController)
 	Config, err := kconfig.NewFromString(configstring)
 	if options.Downgrade {
@@ -99,8 +116,10 @@ func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err 
 		SafeMode:       options.SafeMode,
 		NTHash:         options.NTHash,
 		SocksAddr:      options.SocksAddr,
+		EncryptionType: options.EncryptionType,
 		HashFile:       hashFile,
 		Logger:         options.logger,
+		ProgressBar:    progressbar.Default(-1),
 	}
 	return k, err
 
@@ -132,7 +151,7 @@ func (k KerbruteSession) TestLogin(username, password string) (bool, error) {
 	if k.NTHash {
 		Client = kclient.NewWithNTHash(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr), kclient.PreAuthEType(etypeID.RC4_HMAC))
 	} else {
-		Client = kclient.NewWithPassword(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr))
+		Client = kclient.NewWithPassword(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr), kclient.PreAuthEType(etypeID.ETypesByName[k.EncryptionType]))
 	}
 
 	defer Client.Destroy()

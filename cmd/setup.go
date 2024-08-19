@@ -25,6 +25,8 @@ var (
 
 	ntHash           bool
 	socksAddr        string
+	eType            string
+	linux            bool
 
 	logger           util.Logger
 	kSession         session.KerbruteSession
@@ -46,6 +48,8 @@ func setupSession(cmd *cobra.Command, args []string) {
 		Downgrade:        downgrade,
 		NTHash:           ntHash,
 		SocksAddr:        socksAddr,
+		EncryptionType:   eType,
+		Linux:            linux,
 	}
 	k, err := session.NewKerbruteSession(kOptions)
 	if err != nil {

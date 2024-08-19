@@ -5,15 +5,21 @@
 This repository currently contains the following updates/modifications:
 - Support tunneling TCP connections through a SOCKS proxy via `--socks <ip:port>`
 - Support NT hash authentication via `--hash|-H`
-  - This flag enables hash authentication and hashes should replace passwords in the command line arguments (e.g. `./kerbrute_linux_amd64 passwordspray -d lab.ropnop.com domain_users.txt <HASH>`)
+  - This flag enables hash authentication and hashes should replace passwords in the command line arguments (e.g. `./kerbrute_linux_amd64 passwordspray -d lab.ropnop.com -H domain_users.txt <HASH>`)
 - Support empty passwords for authentication
 - Resolve an issue regarding the way the gokrb5 package was invoked where failed authentication attempts would trigger a second attempt causing the bad password count in Active Directory to increment by 2
-- Per the referenced bug in the [Kerbrute issue](https://github.com/ropnop/kerbrute/issues/75), during user enumeration, if the returned encryption salt from the KDC_ERR_PREAUTH_REQUIRED response differs from the provided username, display it inline enclosed in parenthesis
+- Per the referenced bug in [ropnop#75](https://github.com/ropnop/kerbrute/issues/75), during user enumeration, if the returned encryption salt from the KDC_ERR_PREAUTH_REQUIRED response differs from the provided username, display it inline enclosed in parenthesis
+- Add a progress bar to show current progress/iterations
+- Support specifying a pre-authentication encryption type for password authentication in the case of KDC_ERR_ETYPE_NOSUPP via `--etype`
+- Support Linux KDCs and treat the domain as is when setting the realm to account for case-sensitivity per [ropnop#66](https://github.com/ropnop/kerbrute/issues/66)
 
-#### TODO:
+### Update Notes
 
-- Add some sort of output indication regarding the current progress of larger tasks
-- Add a command line flag to specify the pre-authentication encryption type for password authentication in the case of KDC_ERR_ETYPE_NOSUPP
+When performing Kerberos authentication using passwords, the realm and username are both used as the encryption salt and therefor are case-sensitive. Normally, Windows will set the realm as the domain with all characters forced to upper case. The username is then appended to the realm exactly as it is stored in Active Directory. For example, if the domain is `lab.local` and the user is `jDoe`, the encryption salt that Kerberos will use server-side will be `LAB.LOCALjDoe`. In this case, if authentication is attempted for `jdoe`, the salt used client-side will be `LAB.LOCALjdoe` and will fail to authenticate.
+
+To account for this, during user enumeration, if the username returned in the supported encryption salt differs from the attempted username - Kerbrute will output the Active Directory username wrapped in parenthesis. This value should be used in place of the original username when attempting to authenticate via password spraying, brute forcing, etc.
+
+Also, in some cases when authenticating against a Linux KDC, the realm server-side is not stored in all upper case characters. Therefor, the flag `--linux` has been added that will treat the domain as is when setting the realm instead of forcing to upper case characters.
 
 ---
 
@@ -78,9 +84,18 @@ Flags:
       --delay int          Delay in millisecond between each attempt. Will always use single thread if set
   -d, --domain string      The full domain to use (e.g. contoso.com)
       --downgrade          Force downgraded encryption type (arcfour-hmac-md5)
-  -H, --hash               Indicate the use of an NT hash (rc4-hmac) instead of a password for authentication
+      --etype string       Kerberos password authentication encryption type (default: aes128-cts-hmac-sha1-96)
+                           Encryption Types:
+                               rc4-hmac
+                               des3-cbc-sha1-kd
+                               aes128-cts-hmac-sha1-96
+                               aes256-cts-hmac-sha1-96
+                               aes128-cts-hmac-sha256-128
+                               aes256-cts-hmac-sha384-192
+  -H, --hash               Indicate the use of NT hash(es) [rc4-hmac] instead of password(s) for authentication
       --hash-file string   File to save AS-REP hashes to (if any captured), otherwise just logged
   -h, --help               help for kerbrute
+      --linux              Indicate the target KDC as Linux and treat the realm as case-sensitive instead of forcing upper case
   -o, --output string      File to write logs to. Optional.
       --safe               Safe mode. Will abort if any user comes back as locked out. Default: FALSE
       --socks string       SOCKS5 proxy address and port for upstream proxying (e.g. 127.0.0.1:1080)

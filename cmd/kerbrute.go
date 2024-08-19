@@ -32,8 +32,18 @@ func init() {
 	rootCmd.PersistentFlags().IntVarP(&delay, "delay", "", 0, "Delay in millisecond between each attempt. Will always use single thread if set")
 	rootCmd.PersistentFlags().BoolVar(&downgrade, "downgrade", false, "Force downgraded encryption type (arcfour-hmac-md5)")
 	rootCmd.PersistentFlags().StringVar(&hashFileName, "hash-file", "", "File to save AS-REP hashes to (if any captured), otherwise just logged")
-	rootCmd.PersistentFlags().BoolVarP(&ntHash, "hash", "H", false, "Indicate the use of an NT hash (rc4-hmac) instead of a password for authentication")
+	rootCmd.PersistentFlags().BoolVarP(&ntHash, "hash", "H", false, "Indicate the use of NT hash(es) [rc4-hmac] instead of password(s) for authentication")
 	rootCmd.PersistentFlags().StringVar(&socksAddr, "socks", "", "SOCKS5 proxy address and port for upstream proxying (e.g. 127.0.0.1:1080)")
+	rootCmd.PersistentFlags().StringVar(&eType, "etype", "", `Kerberos password authentication encryption type (default: aes128-cts-hmac-sha1-96)
+Encryption Types:
+    rc4-hmac
+    des3-cbc-sha1-kd
+    aes128-cts-hmac-sha1-96
+    aes256-cts-hmac-sha1-96
+    aes128-cts-hmac-sha256-128
+    aes256-cts-hmac-sha384-192`)
+	rootCmd.PersistentFlags().BoolVar(&linux, "linux", false, "Indicate the target KDC as Linux and treat the realm as case-sensitive instead of forcing upper case")
+
 	if delay != 0 {
 		threads = 1
 	}
