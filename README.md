@@ -9,6 +9,7 @@ This repository currently contains the following updates/modifications:
 - Support empty passwords for authentication
 - Resolve an issue regarding the way the gokrb5 package was invoked where failed authentication attempts would trigger a second attempt causing the bad password count in Active Directory to increment by 2
 - Per the referenced bug in [ropnop#75](https://github.com/ropnop/kerbrute/issues/75), during user enumeration, if the returned encryption salt from the KDC_ERR_PREAUTH_REQUIRED response differs from the provided username, display it inline enclosed in parenthesis
+  - Account for valid ASRep responses when no pre-authentication is required
 - Add a progress bar to show current progress/iterations
 - Support specifying a pre-authentication encryption type for password authentication in the case of KDC_ERR_ETYPE_NOSUPP via `--etype`
 - Support Linux KDCs and treat the domain as is when setting the realm to account for case-sensitivity per [ropnop#66](https://github.com/ropnop/kerbrute/issues/66)

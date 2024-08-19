@@ -42,15 +42,37 @@ func FormatComboLine(combo string) (username string, password string, err error)
 
 // ExtractPreAuthUsername will extract a username from a KDC_ERR_PREAUTH_REQUIRED
 // encryption salt
-// This code is based on the function preAuthEType() via gokrb5/v8/client/ASExchange.go#L158
 func ExtractPreAuthUsername(krberr messages.KRBError) (salt string, err error) {
 	var pas types.PADataSequence
 	e := pas.Unmarshal(krberr.EData)
 	if e != nil {
 		return "", krberror.Errorf(e, krberror.EncodingError, "error unmashalling KRBError data")
 	}
+	// The unmarshalled KRBError.EData returns -> []types.PAData
+	salt, err = extractSalt(pas)
+	if err != nil {
+		return "", err
+	}
+	return salt, err
+}
+
+// ExtractASRepUsername will extract a username from an ASRep encryption salt when a
+// user does not require pre-authentication
+func ExtractASRepUsername(k messages.ASRep) (salt string, err error) {
+	// The PAData object within an ASRep returns -> []types.PAData
+	salt, err = extractSalt(k.PAData)
+	if err != nil {
+		return "", err
+	}
+	return salt, err
+}
+
+// extractSalt will loop over the PAData items and look for ETYPE_INFO to extract the salt from
+// This code is based on the function preAuthEType() via gokrb5/v8/client/ASExchange.go#L158
+func extractSalt(paData []types.PAData) (salt string, err error) {
 Loop:
-	for _, pa := range pas {
+	for _, pa := range paData {
+		// Each types.PAData object has 2 fields -> { PADataType, PADataValue }
 		switch pa.PADataType {
 		case patype.PA_ETYPE_INFO2:
 			info, e := pa.GetETypeInfo2()
@@ -76,5 +98,5 @@ Loop:
 			}
 		}
 	}
-	return salt, nil
+	return salt, err
 }

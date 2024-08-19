@@ -190,6 +190,11 @@ func (k KerbruteSession) TestUsername(username string) (bool, string, error) {
 			return false, username, err
 		}
 		k.DumpASRepHash(ASRep)
+
+		salt, _ := util.ExtractASRepUsername(ASRep)
+		if salt != "" {
+			username = strings.Replace(salt, k.Realm, "", 1)
+		}
 		return true, username, nil
 	}
 	e, ok := err.(messages.KRBError)
