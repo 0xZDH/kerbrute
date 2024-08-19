@@ -20,10 +20,11 @@ var (
 	stopOnSuccess    bool
 	userAsPass       = false
 
-	downgrade bool
-	hashFileName string
+	downgrade        bool
+	hashFileName     string
 
-	socksAddr string
+	ntHash           bool
+	socksAddr        string
 
 	logger           util.Logger
 	kSession         session.KerbruteSession
@@ -43,6 +44,7 @@ func setupSession(cmd *cobra.Command, args []string) {
 		SafeMode:         safe,
 		HashFilename:     hashFileName,
 		Downgrade:        downgrade,
+		NTHash:           ntHash,
 		SocksAddr:        socksAddr,
 	}
 	k, err := session.NewKerbruteSession(kOptions)

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/0xZDH/gokrb5/v8/iana/errorcode"
+	"github.com/0xZDH/gokrb5/v8/iana/etypeID"
 
 	kclient "github.com/0xZDH/gokrb5/v8/client"
 	kconfig "github.com/0xZDH/gokrb5/v8/config"
@@ -29,27 +30,29 @@ default_realm = {{.Realm}}
 `
 
 type KerbruteSession struct {
-	Domain       string
-	Realm        string
-	Kdcs         map[int]string
-	ConfigString string
-	Config       *kconfig.Config
-	Verbose      bool
-	SafeMode     bool
-	SocksAddr    string
-	HashFile     *os.File
-	Logger       *util.Logger
+	Domain         string
+	Realm          string
+	Kdcs           map[int]string
+	ConfigString   string
+	Config         *kconfig.Config
+	Verbose        bool
+	SafeMode       bool
+	NTHash         bool
+	SocksAddr      string
+	HashFile       *os.File
+	Logger         *util.Logger
 }
 
 type KerbruteSessionOptions struct {
-	Domain string
+	Domain           string
 	DomainController string
-	Verbose bool
-	SafeMode bool
-	Downgrade bool
-	SocksAddr string
-	HashFilename string
-	logger *util.Logger
+	Verbose          bool
+	SafeMode         bool
+	Downgrade        bool
+	NTHash           bool
+	SocksAddr        string
+	HashFilename     string
+	logger           *util.Logger
 }
 
 func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err error) {
@@ -87,16 +90,17 @@ func NewKerbruteSession(options KerbruteSessionOptions) (k KerbruteSession, err 
 		err = fmt.Errorf("Couldn't find any KDCs for realm %s. Please specify a Domain Controller", realm)
 	}
 	k = KerbruteSession{
-		Domain:       options.Domain,
-		Realm:        realm,
-		Kdcs:         kdcs,
-		ConfigString: configstring,
-		Config:       Config,
-		Verbose:      options.Verbose,
-		SafeMode:     options.SafeMode,
-		SocksAddr:    options.SocksAddr,
-		HashFile:     hashFile,
-		Logger:       options.logger,
+		Domain:         options.Domain,
+		Realm:          realm,
+		Kdcs:           kdcs,
+		ConfigString:   configstring,
+		Config:         Config,
+		Verbose:        options.Verbose,
+		SafeMode:       options.SafeMode,
+		NTHash:         options.NTHash,
+		SocksAddr:      options.SocksAddr,
+		HashFile:       hashFile,
+		Logger:         options.logger,
 	}
 	return k, err
 
@@ -122,7 +126,15 @@ func buildKrb5Template(realm, domainController string) string {
 }
 
 func (k KerbruteSession) TestLogin(username, password string) (bool, error) {
-	Client := kclient.NewWithPassword(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr))
+	var Client *kclient.Client
+
+	// Handle NT Hash or password authentication
+	if k.NTHash {
+		Client = kclient.NewWithNTHash(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr), kclient.PreAuthEType(etypeID.RC4_HMAC))
+	} else {
+		Client = kclient.NewWithPassword(username, k.Realm, password, k.Config, kclient.DisablePAFXFAST(true), kclient.AssumePreAuthentication(true), kclient.SocksAddr(k.SocksAddr))
+	}
+
 	defer Client.Destroy()
 	if ok, err := Client.IsConfigured(); !ok {
 		return false, err

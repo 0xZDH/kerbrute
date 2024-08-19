@@ -1,6 +1,19 @@
 # Kerbrute
 
-> This is a modified version of [ropnop's kerbrute](https://github.com/ropnop/kerberos). The primary reason for this modified version is to support SOCKS proxy handling as well as several updates/quality of life changes.
+> This is a modified version of [ropnop's Kerbrute](https://github.com/ropnop/kerbrute).
+
+This repository currently contains the following updates/modifications:
+- Support tunneling TCP connections through a SOCKS proxy via `--socks <ip:port>`
+- Support NT hash authentication via `--hash|-H`
+  - This flag enables hash authentication and hashes should replace passwords in the command line arguments (e.g. `./kerbrute_linux_amd64 passwordspray -d lab.ropnop.com domain_users.txt <HASH>`)
+- Support empty passwords for authentication
+- Resolve an issue regarding the way the gokrb5 package was invoked where failed authentication attempts would trigger a second attempt causing the bad password count in Active Directory to increment by 2
+
+#### TODO:
+
+- Add some sort of output indication regarding the current progress of larger tasks
+- Account for username case-sensitivity as mentioned in an open [Kerbrute issue](https://github.com/ropnop/kerbrute/issues/75)
+  - Initially, this appears to be related to how Kerberos handles encryption by leveraging the principal name as a salt. If the username is stored different than how it was passed to Kerbrute, password authentication will fail. This, however, does not appear to affect NT hash authentication.
 
 ---
 
@@ -43,7 +56,7 @@ $ ./kerbrute -h
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
+Version: dev (c1474ac) - 08/19/24 - Ronnie Flathers @ropnop (Modified by ZedH @0xZDH)
 
 This tool is designed to assist in quickly bruteforcing valid Active Directory accounts through Kerberos Pre-Authentication.
 It is designed to be used on an internal Windows domain with access to one of the Domain Controllers.
@@ -65,6 +78,7 @@ Flags:
       --delay int          Delay in millisecond between each attempt. Will always use single thread if set
   -d, --domain string      The full domain to use (e.g. contoso.com)
       --downgrade          Force downgraded encryption type (arcfour-hmac-md5)
+  -H, --hash               Indicate the use of an NT hash (rc4-hmac) instead of a password for authentication
       --hash-file string   File to save AS-REP hashes to (if any captured), otherwise just logged
   -h, --help               help for kerbrute
   -o, --output string      File to write logs to. Optional.
@@ -88,7 +102,7 @@ root@kali:~# ./kerbrute_linux_amd64 userenum -d lab.ropnop.com usernames.txt
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
+Version: dev (c1474ac) - 08/19/24 - Ronnie Flathers @ropnop (Modified by ZedH @0xZDH)
 
 2019/03/06 21:28:04 >  Using KDC(s):
 2019/03/06 21:28:04 >   pdc01.lab.ropnop.com:88
@@ -110,7 +124,7 @@ root@kali:~# ./kerbrute_linux_amd64 passwordspray -d lab.ropnop.com domain_users
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
+Version: dev (c1474ac) - 08/19/24 - Ronnie Flathers @ropnop (Modified by ZedH @0xZDH)
 
 2019/03/06 21:37:29 >  Using KDC(s):
 2019/03/06 21:37:29 >   pdc01.lab.ropnop.com:88
@@ -132,7 +146,7 @@ root@kali:~# ./kerbrute_linux_amd64 bruteuser -d lab.ropnop.com passwords.lst th
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (9cfb81e) - 08/15/24 - Ronnie Flathers @ropnop | ZedH @0xZDH
+Version: dev (c1474ac) - 08/19/24 - Ronnie Flathers @ropnop (Modified by ZedH @0xZDH)
 
 2019/03/06 21:38:24 >  Using KDC(s):
 2019/03/06 21:38:24 >   pdc01.lab.ropnop.com:88
@@ -152,7 +166,7 @@ $ cat combos.lst | ./kerbrute -d lab.ropnop.com bruteforce -
  / ,< /  __/ /  / /_/ / /  / /_/ / /_/  __/
 /_/|_|\___/_/  /_.___/_/   \__,_/\__/\___/
 
-Version: dev (n/a) - 05/11/19 - Ronnie Flathers @ropnop
+Version: dev (c1474ac) - 08/19/24 - Ronnie Flathers @ropnop (Modified by ZedH @0xZDH)
 
 2019/05/11 18:40:56 >  Using KDC(s):
 2019/05/11 18:40:56 >   pdc01.lab.ropnop.com:88
