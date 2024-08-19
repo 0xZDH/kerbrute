@@ -147,7 +147,7 @@ func (k KerbruteSession) TestLogin(username, password string) (bool, error) {
 	return success, err
 }
 
-func (k KerbruteSession) TestUsername(username string) (bool, error) {
+func (k KerbruteSession) TestUsername(username string) (bool, string, error) {
 	// client here does NOT assume preauthentication (as opposed to the one in TestLogin)
 
 	cl := kclient.NewWithPassword(username, k.Realm, "foobar", k.Config, kclient.DisablePAFXFAST(true), kclient.SocksAddr(k.SocksAddr))
@@ -158,7 +158,7 @@ func (k KerbruteSession) TestUsername(username string) (bool, error) {
 	}
 	b, err := req.Marshal()
 	if err != nil {
-		return false, err
+		return false, username, err
 	}
 	rb, err := cl.SendToKDC(b, k.Realm)
 
@@ -168,20 +168,24 @@ func (k KerbruteSession) TestUsername(username string) (bool, error) {
 		err = ASRep.Unmarshal(rb)
 		if err != nil {
 			// something went wrong, it's not a valid response
-			return false, err
+			return false, username, err
 		}
 		k.DumpASRepHash(ASRep)
-		return true, nil
+		return true, username, nil
 	}
 	e, ok := err.(messages.KRBError)
 	if !ok {
-		return false, err
+		return false, username, err
 	}
 	switch e.ErrorCode {
 	case errorcode.KDC_ERR_PREAUTH_REQUIRED:
-		return true, nil
+		salt, _ := util.ExtractPreAuthUsername(e)
+		if salt != "" {
+			username = strings.Replace(salt, k.Realm, "", 1)
+		}
+		return true, username, nil
 	default:
-		return false, err
+		return false, username, err
 
 	}
 }

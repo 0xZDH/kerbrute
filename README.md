@@ -8,12 +8,12 @@ This repository currently contains the following updates/modifications:
   - This flag enables hash authentication and hashes should replace passwords in the command line arguments (e.g. `./kerbrute_linux_amd64 passwordspray -d lab.ropnop.com domain_users.txt <HASH>`)
 - Support empty passwords for authentication
 - Resolve an issue regarding the way the gokrb5 package was invoked where failed authentication attempts would trigger a second attempt causing the bad password count in Active Directory to increment by 2
+- Per the referenced bug in the [Kerbrute issue](https://github.com/ropnop/kerbrute/issues/75), during user enumeration, if the returned encryption salt from the KDC_ERR_PREAUTH_REQUIRED response differs from the provided username, display it inline enclosed in parenthesis
 
 #### TODO:
 
 - Add some sort of output indication regarding the current progress of larger tasks
-- Account for username case-sensitivity as mentioned in an open [Kerbrute issue](https://github.com/ropnop/kerbrute/issues/75)
-  - Initially, this appears to be related to how Kerberos handles encryption by leveraging the principal name as a salt. If the username is stored different than how it was passed to Kerbrute, password authentication will fail. This, however, does not appear to affect NT hash authentication.
+- Add a command line flag to specify the pre-authentication encryption type for password authentication in the case of KDC_ERR_ETYPE_NOSUPP
 
 ---
 

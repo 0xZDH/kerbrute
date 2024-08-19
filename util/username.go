@@ -3,6 +3,11 @@ package util
 import (
 	"errors"
 	"strings"
+
+	"github.com/0xZDH/gokrb5/v8/krberror"
+	"github.com/0xZDH/gokrb5/v8/messages"
+	"github.com/0xZDH/gokrb5/v8/iana/patype"
+	"github.com/0xZDH/gokrb5/v8/types"
 )
 
 func FormatUsername(username string) (user string, err error) {
@@ -33,4 +38,43 @@ func FormatComboLine(combo string) (username string, password string, err error)
 	}
 	return user, pass, err
 
+}
+
+// ExtractPreAuthUsername will extract a username from a KDC_ERR_PREAUTH_REQUIRED
+// encryption salt
+// This code is based on the function preAuthEType() via gokrb5/v8/client/ASExchange.go#L158
+func ExtractPreAuthUsername(krberr messages.KRBError) (salt string, err error) {
+	var pas types.PADataSequence
+	e := pas.Unmarshal(krberr.EData)
+	if e != nil {
+		return "", krberror.Errorf(e, krberror.EncodingError, "error unmashalling KRBError data")
+	}
+Loop:
+	for _, pa := range pas {
+		switch pa.PADataType {
+		case patype.PA_ETYPE_INFO2:
+			info, e := pa.GetETypeInfo2()
+			if e != nil {
+				return "", krberror.Errorf(e, krberror.EncodingError, "error unmashalling ETYPE-INFO2 data")
+			}
+			for _, entry := range info {
+				if len(entry.Salt) > 0 {
+					salt = string(entry.Salt[:])
+					break Loop
+				}
+			}
+		case patype.PA_ETYPE_INFO:
+			info, e := pa.GetETypeInfo()
+			if e != nil {
+				return "", krberror.Errorf(e, krberror.EncodingError, "error unmashalling ETYPE-INFO data")
+			}
+			for _, entry := range info {
+				if len(entry.Salt) > 0 {
+					salt = string(entry.Salt[:])
+					break Loop
+				}
+			}
+		}
+	}
+	return salt, nil
 }

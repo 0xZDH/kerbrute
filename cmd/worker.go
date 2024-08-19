@@ -97,9 +97,16 @@ func testLogin(ctx context.Context, username string, password string) {
 }
 
 func testUsername(ctx context.Context, username string) {
-	atomic.AddInt32(&counter, 1)
-	usernamefull := fmt.Sprintf("%v@%v", username, domain)
-	valid, err := kSession.TestUsername(username)
+	atomic.AddInt32(&counter, 1)	
+	valid, salt, err := kSession.TestUsername(username)
+
+	var usernamefull string
+	if salt != "" && salt != username {
+		usernamefull = fmt.Sprintf("%v@%v (%v)", username, domain, salt)
+	} else {
+		usernamefull = fmt.Sprintf("%v@%v", username, domain)
+	}
+
 	if valid {
 		atomic.AddInt32(&successes, 1)
 		if err != nil {
